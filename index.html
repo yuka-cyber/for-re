@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For Re ♡</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,500&display=swap">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --night: #120a1c;
+  --rose: #ff8fb7;
+  --blush: #ffe3ec;
+  --gold: #ffd5a0;
+  --muted: #c9a3b8;
+  --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, var(--blush) 99%, transparent),
+    radial-gradient(1px 1px at 82% 12%, var(--rose) 99%, transparent),
+    radial-gradient(1px 1px at 30% 72%, var(--blush) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 72% 84%, var(--gold) 99%, transparent),
+    radial-gradient(1px 1px at 92% 52%, var(--blush) 99%, transparent),
+    radial-gradient(1px 1px at 8% 88%, var(--rose) 99%, transparent),
+    radial-gradient(ellipse at 50% 45%, #2a1233 0%, var(--night) 70%);
+  background-size: 260px 260px, 300px 300px, 220px 220px, 340px 340px, 280px 280px, 240px 240px, 100% 100%;
+  color: var(--blush);
+  font-family: var(--serif);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 20px;
+}
+main { width: 100%; max-width: 640px; }
+h1 {
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(52px, 15vw, 92px);
+  line-height: 1;
+  color: var(--rose);
+  text-shadow: 0 0 28px rgba(255, 90, 160, .55);
+  animation: rise 2s ease both;
+}
+.sub {
+  font-size: clamp(19px, 5vw, 24px);
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 14px;
+  animation: rise 2s .6s ease both;
+}
+canvas { display: block; width: 100%; height: min(42vh, 340px); margin: 10px 0 4px; }
+.stage { display: grid; min-height: 9.5em; align-items: start; justify-items: center; }
+.stage > * { grid-area: 1 / 1; }
+button {
+  font: italic 500 clamp(19px, 5vw, 22px) var(--serif);
+  color: var(--blush);
+  background: rgba(255, 143, 183, .08);
+  border: 1px solid var(--rose);
+  border-radius: 999px;
+  padding: 13px 30px;
+  cursor: pointer;
+  transition: opacity .8s ease, background .3s, box-shadow .3s;
+}
+button:hover { background: rgba(255, 143, 183, .18); box-shadow: 0 0 24px rgba(255, 90, 160, .4); }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+button.gone { opacity: 0; pointer-events: none; }
+.msg { opacity: 0; transition: opacity 2s ease; max-width: 26em; pointer-events: none; }
+button { position: relative; z-index: 2; touch-action: manipulation; }
+.msg.on { opacity: 1; }
+.msg p { font-size: clamp(22px, 5.8vw, 28px); line-height: 1.55; font-weight: 300; text-shadow: 0 0 14px rgba(255, 90, 160, .35); }
+.msg .from { margin-top: 12px; font-size: 20px; font-style: italic; color: var(--gold); }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  h1, .sub { animation: none; }
+  .msg { transition: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Re ♡</h1>
+  <p class="sub">Even miles away, you’re close to my heart.</p>
+  <canvas id="sky" aria-label="Two glowing lights connected by a thread of light"></canvas>
+  <div class="stage">
+    <button id="go">Bring us closer</button>
+    <div class="msg" id="msg">
+      <p>If I was next to u rn, I’d make sure u knew how much u mean to me, and never let that moment end. ♡</p>
+      <p class="from">From Yuka ♡</p>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+  var c = document.getElementById('sky'), x = c.getContext('2d');
+  var go = document.getElementById('go'), msg = document.getElementById('msg');
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var W = 0, H = 0, together = 0, pulling = false, shown = false;
+
+  function size() {
+    var r = c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    W = r.width; H = r.height;
+    c.width = W * d; c.height = H * d;
+    x.setTransform(d, 0, 0, d, 0, 0);
+  }
+  window.addEventListener('resize', size);
+  size();
+
+  function orb(px, py, rgb, r) {
+    var g = x.createRadialGradient(px, py, 0, px, py, r * 5);
+    g.addColorStop(0, 'rgba(' + rgb + ',.95)');
+    g.addColorStop(.25, 'rgba(' + rgb + ',.35)');
+    g.addColorStop(1, 'rgba(' + rgb + ',0)');
+    x.fillStyle = g;
+    x.beginPath(); x.arc(px, py, r * 5, 0, 6.2832); x.fill();
+    x.fillStyle = '#fff';
+    x.beginPath(); x.arc(px, py, r * .45, 0, 6.2832); x.fill();
+  }
+  function bez(a, c1, b, t) { var u = 1 - t; return u * u * a + 2 * u * t * c1 + t * t * b; }
+  function heartPt(t, s) {
+    return [16 * Math.pow(Math.sin(t), 3) * s,
+      -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * s];
+  }
+
+  function frame(ts) {
+    var time = ts / 1000;
+    if (pulling && together < 1) together = Math.min(1, together + (calm ? 1 : 0.0045));
+    var e = together < .5 ? 4 * Math.pow(together, 3) : 1 - Math.pow(-2 * together + 2, 3) / 2;
+    var cx = W / 2, cy = H / 2, far = 1 - e;
+    var gap = W * 0.4 * far;
+    var ax = cx - gap, ay = cy + H * 0.16 * far, bx = cx + gap, by = cy - H * 0.16 * far;
+    x.clearRect(0, 0, W, H);
+
+    if (gap > 2) {
+      var g = x.createLinearGradient(ax, 0, bx, 0);
+      g.addColorStop(0, 'rgba(255,143,183,.75)'); g.addColorStop(1, 'rgba(255,213,160,.75)');
+      x.strokeStyle = g; x.lineWidth = 1; x.shadowColor = '#ff3b91'; x.shadowBlur = 8;
+      for (var k = 0; k < 4; k++) {
+        var sway = calm ? 0 : Math.sin(time * .8 + k * 1.3) * 12 * far;
+        var cyk = (ay + by) / 2 + 36 * far + sway + (k - 1.5) * 5 * far;
+        x.globalAlpha = k === 0 ? .9 : .3;
+        x.beginPath(); x.moveTo(ax, ay); x.quadraticCurveTo(cx, cyk, bx, by); x.stroke();
+      }
+      x.globalAlpha = 1; x.shadowBlur = 0;
+      if (!calm) {
+        var cy1 = (ay + by) / 2 + 36 * far;
+        for (var s = 0; s < 12; s++) {
+          var p = (time * .09 + s / 12) % 1;
+          var px = bez(ax, cx, bx, p), py = bez(ay, cy1, by, p);
+          x.fillStyle = 'rgba(255,240,245,' + (Math.sin(p * Math.PI) * .9) + ')';
+          x.beginPath(); x.arc(px, py, 1.7, 0, 6.2832); x.fill();
+        }
+      }
+    }
+
+    var r = 7 + e * 3 + (calm ? 0 : Math.sin(time * 2) * 1.2);
+    orb(ax, ay, '255,143,183', r);
+    orb(bx, by, '255,213,160', r);
+
+    if (far > .05) {
+      x.globalAlpha = far; x.fillStyle = '#ffe3ec';
+      x.font = 'italic 300 18px "Cormorant Garamond", Georgia, serif'; x.textAlign = 'center';
+      x.fillText('Yuka', ax, ay + 34); x.fillText('Re', bx, by - 28);
+      x.globalAlpha = 1;
+    }
+
+    var h = Math.max(0, Math.min(1, (together - .8) / .2));
+    if (h > 0) {
+      var sc = Math.min(W, H) / 40 * (.4 + .6 * h) * (calm ? 1 : 1 + Math.sin(time * 3) * .03);
+      x.save(); x.translate(cx, cy + 4); x.globalAlpha = h;
+      x.beginPath();
+      for (var i = 0; i <= 120; i++) {
+        var q = heartPt(i / 120 * 6.2832, sc);
+        if (i) x.lineTo(q[0], q[1]); else x.moveTo(q[0], q[1]);
+      }
+      x.closePath();
+      var hg = x.createRadialGradient(0, 0, 0, 0, 0, sc * 18);
+      hg.addColorStop(0, 'rgba(255,213,160,.55)'); hg.addColorStop(1, 'rgba(255,90,160,.35)');
+      x.fillStyle = hg; x.shadowColor = '#ff3b91'; x.shadowBlur = 26; x.fill();
+      x.strokeStyle = '#ff8fb7'; x.lineWidth = 1.5; x.stroke();
+      x.restore();
+    }
+
+    if (together >= 1 && !shown) { shown = true; msg.classList.add('on'); }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  go.addEventListener('click', function () { pulling = true; go.classList.add('gone'); go.disabled = true; });
+})();
+</script>
+</body>
+</html>
